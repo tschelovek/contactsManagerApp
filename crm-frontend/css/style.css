@@ -1,4 +1,4 @@
-:root{
+:root {
     --gray: #E3E2E8;
     --light-gray: #F5F5F5;
     --text-gray: #B0B0B0;
@@ -10,68 +10,105 @@
     margin: 0;
     box-sizing: border-box;
 }
+
 body {
+    padding-bottom: 2rem;
     position: relative;
     font-family: Open Sans, sans-serif;
     font-size: 14px;
     background-color: var(--light-gray);
 }
+
 .container {
     margin: 0 auto;
     padding: 0 20px;
     max-width: 1366px;
 }
+
+.visually-hidden {
+    position: absolute;
+    clip: rect(0 0 0 0);
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+}
+
 header {
     padding: 20px 0;
     background-color: #ffffff;
     box-shadow: 0 8px 16px 0 var(--gray);;
 }
+
 header .container {
     display: flex;
 }
+
 main .container {
     display: flex;
     flex-flow: column;
 }
+
 table {
     margin: 40px auto;
     max-width: 1186px;
     border-collapse: collapse;
 }
+
 caption {
     margin: 8px 0;
     text-align: left;
     font-size: 24px;
     font-weight: 700;
 }
+
 th {
     padding: 8px 20px;
     text-align: left;
     color: var(--text-gray);
     font-size: 12px;
 }
+
 th.filtered {
     color: var(--violet);
 }
+
 td {
     padding: 20px;
 }
+
 tbody tr {
     background-color: #ffffff;
     border-bottom: 1px solid var(--gray);
 }
+
 tbody tr td {
     font-size: 14px;
 }
+
 tbody tr td[scope] {
     color: var(--text-gray);
     font-size: 12px;
     vertical-align: bottom;
 }
+
 tbody tr td:nth-child(3) span, tbody tr td:nth-child(4) span {
     margin-left: 8px;
     color: var(--text-gray);
 }
+
+.form input {
+    height: 40px;
+    border: none;
+}
+
+.fieldset_add-contact {
+    display: flex;
+    flex-flow: column;
+    justify-content: center;
+    background-color: var(--gray);
+    border: none;
+}
+
 .modal {
     display: none;
     position: fixed;
@@ -81,11 +118,13 @@ tbody tr td:nth-child(3) span, tbody tr td:nth-child(4) span {
     z-index: 20;
     background-color: rgba(0, 0, 0, 0.5);
 }
+
 .modal.active {
     display: flex;
     justify-content: center;
     align-items: center;
 }
+
 .modal__window {
     padding: 30px;
     position: relative;
@@ -98,6 +137,7 @@ tbody tr td:nth-child(3) span, tbody tr td:nth-child(4) span {
     position: relative;
     display: inline-block;
 }
+
 .contacts__icon {
     margin-right: 8px;
     position: relative;
@@ -109,24 +149,25 @@ tbody tr td:nth-child(3) span, tbody tr td:nth-child(4) span {
     border-radius: 50%;
     filter: opacity(0.7)
 }
+
 .contacts__icon:hover {
     filter: opacity(1)
 }
+
 .tooltip {
     padding: 1em;
     clip-path: polygon(
-    0% 0%,
-    100% 0%,
-    100% calc(100% - 6px),
-    calc(50% + 10px) calc(100% - 6px),
-    50% 100%,
-    calc(50% - 10px) calc(100% - 6px),
-    0% calc(100% - 6px)
+            0% 0%,
+            100% 0%,
+            100% calc(100% - 6px),
+            calc(50% + 10px) calc(100% - 6px),
+            50% 100%,
+            calc(50% - 10px) calc(100% - 6px),
+            0% calc(100% - 6px)
     );
     position: absolute;
-    /*line-height: 1;*/
-    user-select: none;
-    pointer-events: none;
+    /*user-select: none;*/
+    /*pointer-events: none;*/
     display: none;
     opacity: 0;
     background-color: #333333;
@@ -136,7 +177,8 @@ tbody tr td:nth-child(3) span, tbody tr td:nth-child(4) span {
     transform: translate(-50%, -0.5em);
     transition: all 0.3s ease-in-out;
 }
-.contacts__icon:hover + .tooltip{
+
+.contacts__icon:hover + .tooltip, .tooltip:hover {
     display: block;
     opacity: .9;
     transform: translate(-50%, 0);
@@ -146,19 +188,23 @@ tbody tr td:nth-child(3) span, tbody tr td:nth-child(4) span {
     display: flex;
     flex-flow: column;
 }
+
 .form h2 {
     font-size: 18px;
     font-weight: 700;
 }
+
 .form_delete {
     text-align: center;
 }
+
 .btn {
     border: none;
     background-color: inherit;
     cursor: pointer;
     font-family: Open Sans, sans-serif;
 }
+
 .btn_create {
     margin: auto;
     padding: 12px 24px 12px 56px;
@@ -170,9 +216,11 @@ tbody tr td:nth-child(3) span, tbody tr td:nth-child(4) span {
     -o-transition: color 0.2s;
     transition: color 0.2s;
 }
+
 .btn_create:hover {
     color: var(--violet);
 }
+
 .btn_edit, .btn_delete {
     position: relative;
     -webkit-transition: color 0.2s;
@@ -181,20 +229,25 @@ tbody tr td:nth-child(3) span, tbody tr td:nth-child(4) span {
     -o-transition: color 0.2s;
     transition: color 0.2s;
 }
+
 .btn_edit:hover {
     color: var(--violet);
 }
+
 .btn_edit::before {
     margin-right: 4px;
     content: url('./icons/edit.svg');
 }
+
 .btn_delete:hover {
     color: var(--red);
 }
+
 .btn_delete::before {
     margin-right: 4px;
     content: url('./icons/dell_red.svg');
 }
+
 .btn_close {
     position: absolute;
     font-size: 0;
@@ -203,6 +256,7 @@ tbody tr td:nth-child(3) span, tbody tr td:nth-child(4) span {
     width: 24px;
     height: 24px;
 }
+
 .btn_close::before, .btn_close::after {
     content: '';
     position: absolute;
@@ -222,6 +276,7 @@ tbody tr td:nth-child(3) span, tbody tr td:nth-child(4) span {
     -o-transition: background-color 0.2s;
     transition: background-color 0.2s;
 }
+
 .btn_close::after {
     -webkit-transform: rotateZ(-45deg);
     -moz-transform: rotateZ(-45deg);
@@ -229,9 +284,11 @@ tbody tr td:nth-child(3) span, tbody tr td:nth-child(4) span {
     -o-transform: rotateZ(-45deg);
     transform: rotateZ(-45deg);
 }
+
 .btn_close:hover::before, .btn_close:hover::after {
     background-color: var(--red);
 }
+
 .btn_violet {
     margin: 24px auto 12px;
     padding: 14px 36px;
@@ -239,3 +296,15 @@ tbody tr td:nth-child(3) span, tbody tr td:nth-child(4) span {
     background-color: var(--violet);
     font-weight: 600;
 }
+
+.btn_add-contact {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.btn_add-contact::before {
+    margin-right: 4px;
+    content: url('./icons/add_contact.svg');
+}
+
+
