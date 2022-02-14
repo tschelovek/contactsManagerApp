@@ -1,36 +1,31 @@
 'use strict';
 
 import {changeData, deleteData, getData} from "./serverExchange.js";
-import {contactsOptions, currentColumns} from "./data.js";
+import {contactsOptions, currentColumns, iconsPathObj} from "./data.js";
 
 (function () {
     const app = document.querySelector('#app');
+    // Object.prototype.sortByLetter = function () {
+    //     this.sort(function (a, b) {
+    //         return a - b
+    //     })
+    // }
 
-    let getDMYFromISODate = (dateString) => {
-        return new Date(dateString).toLocaleDateString()
-    };
-    let getHMFromISODate = (dateString) => {
-        return new Date(dateString).toLocaleTimeString().slice(0, -3)
-    };
-    let isString = (item) => {
-        return typeof item == 'string';
-    }
-    let closeModal = () => {
-        document.querySelector('.modal.active').classList.remove('active')
-    }
+    let getDMYFromISODate = dateString => new Date(dateString).toLocaleDateString(),
+        getHMFromISODate = dateString => new Date(dateString).toLocaleTimeString().slice(0, -3),
+        isString = item => typeof item == 'string',
+        dataStorage = {};
+
+    // closeModal = () => document.querySelector('.modal.active').classList.remove('active'),
 
     function createHTMLElement(obj = {}) {
         let {tag, text, classNameArr = [], attributesArr = []} = obj;
         let element = document.createElement(tag);
-        if (text) element.textContent = text;
+        element.textContent = text ? text : '';
 
-        classNameArr.forEach(styleClass => {
-            if (isString(styleClass)) element.classList.add(styleClass)
-        });
-        attributesArr.forEach(attribute => {
-            let {name, value} = attribute;
-            if (isString(name)) element.setAttribute(name, value);
-        });
+        classNameArr.forEach(styleClass => isString(styleClass) ? element.classList.add(styleClass) : null)
+        attributesArr.forEach(attribute => isString(attribute.name) ?
+            element.setAttribute(attribute.name, attribute.value) : null);
 
         if (tag === 'button') {
             let attributesArrFilteredByType = attributesArr.filter(attribute => attribute.name === 'type').reverse();
@@ -44,55 +39,63 @@ import {contactsOptions, currentColumns} from "./data.js";
         return element
     }
 
-    /** Создание вёрстки таблицы. -=START=- **/
+
+    /* Создание вёрстки таблицы. -=START=- */
     function createHeader() {
         const appHeader = createHTMLElement({
-            tag: 'header',
-            classNameArr: ['header'],
-        });
-        const container = createHTMLElement({
-            tag: 'div',
-            classNameArr: ['container'],
-        });
-        const logoLink = createHTMLElement({
-            tag: 'a',
-            classNameArr: ['logo-link'],
-            attributesArr: [
-                {name: 'href', value: '#'}
-            ],
-        });
-        const logoImg = createHTMLElement({
-            tag: 'img',
-            attributesArr: [
-                {name: 'src', value: './css/icons/logo.png'},
-                {name: 'alt', value: 'SkillBus'},
-                {name: 'title', value: 'SkillBus - учёт клиентов'},
-            ],
-        });
-        const form = createHTMLElement({
-            tag: 'form',
-            classNameArr: ['form-search_header'],
-            attributesArr: [
-                {name: 'action', value: 'get'},
-                {name: 'id', value: 'header_search'},
-            ],
-        });
-        const labelInputSearch = createHTMLElement({
-            tag: 'label',
-            text: 'Поиск',
-            classNameArr: ['visually-hidden'],
-            attributesArr: [
-                {name: 'for', value: 'search-input'},
-            ],
-        });
-        const inputSearch = createHTMLElement({
-            tag: 'input',
-            attributesArr: [
-                {name: 'type', value: 'text'},
-                {name: 'placeholder', value: 'Введите запрос'},
-                {name: 'name', value: 'search-input'},
-            ],
-        });
+                tag: 'header',
+                classNameArr: ['header'],
+            }),
+            container = createHTMLElement({
+                tag: 'div',
+                classNameArr: ['container'],
+            }),
+            logoLink = createHTMLElement({
+                tag: 'a',
+                classNameArr: ['logo-link'],
+                attributesArr: [
+                    {name: 'href', value: '#'}
+                ],
+            }),
+            logoImg = createHTMLElement({
+                tag: 'img',
+                attributesArr: [
+                    {name: 'src', value: './css/icons/logo.png'},
+                    {name: 'alt', value: 'SkillBus'},
+                    {name: 'title', value: 'SkillBus - учёт клиентов'},
+                ],
+            }),
+            form = createHTMLElement({
+                tag: 'form',
+                classNameArr: ['form-search_header'],
+                attributesArr: [
+                    {name: 'action', value: 'get'},
+                    {name: 'id', value: 'header_search'},
+                ],
+            }),
+            labelInputSearch = createHTMLElement({
+                tag: 'label',
+                text: 'Поиск',
+                classNameArr: ['visually-hidden'],
+                attributesArr: [
+                    {name: 'for', value: 'search-input'},
+                ],
+            }),
+            inputSearch = createHTMLElement({
+                tag: 'input',
+                attributesArr: [
+                    {name: 'type', value: 'search'},
+                    {name: 'placeholder', value: 'Введите запрос'},
+                    {name: 'name', value: 'search-input'},
+                ],
+            });
+        let timerID = undefined;
+
+        form.addEventListener('submit', (e) => e.preventDefault());
+        inputSearch.addEventListener('input', async (e) => {
+            clearTimeout(timerID);
+            timerID = await setTimeout(hotSearch, 500, e.target.value)
+        })
 
         logoLink.append(logoImg);
         form.append(labelInputSearch, inputSearch);
@@ -103,28 +106,27 @@ import {contactsOptions, currentColumns} from "./data.js";
     }
 
     function createMain() {
-        const appMain = createHTMLElement({tag: 'main'});
-        const addButton = createHTMLElement({
-            tag: 'button',
-            text: 'Добавить клиента',
-            classNameArr: [
-                'btn',
-                'btn_create',
-                'btn_transparent',
-            ],
-        });
-        const container = createHTMLElement({
-            tag: 'div',
-            classNameArr: ['container'],
-        });
+        const appMain = createHTMLElement({tag: 'main'}),
+            addButton = createHTMLElement({
+                tag: 'button',
+                text: 'Добавить клиента',
+                classNameArr: [
+                    'btn',
+                    'btn_create',
+                    'btn_transparent',
+                ],
+            }),
+            container = createHTMLElement({
+                tag: 'div',
+                classNameArr: ['container'],
+            });
 
-        createTable()
-            .then((r) => container.append(r, addButton))
-            .then(appMain.append(container))
+        createTable().then((r) => container.append(r, addButton))
+            .then(appMain.append(container));
 
         addButton.addEventListener('click', () => {
-            const modal = document.querySelector('.modal');
-            const modalWrapper = modal.querySelector('.modal__wrapper');
+            const modal = document.querySelector('.modal'),
+                modalWrapper = modal.querySelector('.modal__wrapper');
 
             modalWrapper.append(addFormCreate());
             modal.classList.add('active')
@@ -134,158 +136,92 @@ import {contactsOptions, currentColumns} from "./data.js";
     }
 
     async function createTable() {
-        const table = createHTMLElement({tag: 'table'});
-        const caption = createHTMLElement({tag: 'caption', text: 'Клиенты'});
+        const table = createHTMLElement({tag: 'table'}),
+            caption = createHTMLElement({tag: 'caption', text: 'Клиенты'});
 
         getData().then((r) => {
+            dataStorage = r;
             table.append(
                 caption,
                 createTableHeadRow(currentColumns),
-                createTableBody(r)
-            );
-            //todo разобраться почему return table работает только после getData
-
-            // return table
+                createTableBody(dataStorage)
+            )
         })
-        // .then(() => { return table })
 
         return table
     }
 
     function createTableHeadRow(currentColumnsArr) {
-        const thead = createHTMLElement({tag: 'thead'});
-        const trow = createHTMLElement({tag: 'tr'});
+        const thead = createHTMLElement({tag: 'thead'}),
+            trow = createHTMLElement({tag: 'tr'});
+        let filterCounter = 1;
 
-        currentColumnsArr
-            .forEach(column => {
-                const tcell = createHTMLElement({
+        currentColumnsArr.forEach(column => {
+            const tcell = createHTMLElement({
                     tag: 'th',
-                    text: column,
                     attributesArr: [
                         {name: 'scope', value: 'col'},
                     ]
+                }),
+                tcellContainer = createHTMLElement({
+                    tag: 'div',
+                    text: column.name,
+                    classNameArr: ['th__container']
                 });
 
-                trow.append(tcell)
-            });
+            if (column.filtered) {
+                const btn = createHTMLElement({
+                        tag: 'button',
+                        classNameArr: ['btn_filter'],
+                        attributesArr: [
+                            {name: 'id', value: `filter${filterCounter++}`}
+                        ],
+                    }),
+                    svgArrow = document.querySelector('#svg_arrow').cloneNode(true);
+
+                svgArrow.removeAttribute('id');
+                btn.appendChild(svgArrow);
+                tcellContainer.append(btn);
+            }
+
+            tcell.append(tcellContainer)
+            trow.append(tcell)
+        });
         thead.append(trow);
 
         return thead
     }
 
-    function createTableBody(clientsList) {
-        let tbody = createHTMLElement({tag: 'tbody'});
+    function createTableBody(clientsListObj) {
+        let tbody = createHTMLElement({tag: 'tbody', attributesArr: [{name: 'id', value: 'tbody'}]});
 
-        clientsList.forEach(client => {
-            const trow = createHTMLElement({tag: 'tr'});
-
-            let {id, createdAt, updatedAt, name, surname, lastName, contacts} = client;
-            let idCell = createHTMLElement({
-                tag: 'td',
-                text: id,
-                attributesArr: [
-                    {scope: 'row'},
-                ]
-            });
-            let nameCell = createHTMLElement({
-                tag: 'td',
-                text: `${surname} ${name} ${lastName}`,
-            });
-            let dateCreateCell = createHTMLElement({tag: 'td'});
-            let dateEditCell = createHTMLElement({tag: 'td'});
-            let contactsCell = createHTMLElement({tag: 'td'});
-            let buttonsCell = createHTMLElement({tag: 'td'});
-            let editBtn = createHTMLElement({
-                tag: 'button',
-                text: 'Изменить',
-                classNameArr: [
-                    'btn',
-                    'btn_edit'
-                ],
-                attributesArr: [
-                    {
-                        name: 'type',
-                        value: 'button'
-                    },
-                ]
-            });
-            let deleteBtn = createHTMLElement({
-                tag: 'button',
-                text: 'Удалить',
-                classNameArr: [
-                    'btn',
-                    'btn_delete',
-                ],
-            });
-
-            dateCreateCell.innerHTML = `${getDMYFromISODate(createdAt)}<span>${getHMFromISODate(createdAt)}</span>`;
-
-            if (updatedAt) {
-                dateEditCell.innerHTML = `${getDMYFromISODate(updatedAt)}<span>${getHMFromISODate(updatedAt)}</span>`
-            }
-            if (contacts) {
-                contacts.forEach(contactItem => contactsCell.append(createContactItem(contactItem)))
-            }
-
-            editBtn.addEventListener('click', () => {
-                const modal = document.querySelector('.modal');
-                const modalWrapper = modal.querySelector('.modal__wrapper');
-
-                modalWrapper.append(addFormEdit(client));
-                modal.classList.add('active')
-            })
-            deleteBtn.addEventListener('click', () => {
-                const modal = document.querySelector('.modal');
-                const modalWrapper = modal.querySelector('.modal__wrapper');
-
-                modalWrapper.append(addFormDelete(id));
-                modal.classList.add('active');
-            })
-
-            buttonsCell.append(editBtn, deleteBtn);
-            trow.append(idCell, nameCell, dateCreateCell, dateEditCell, contactsCell, buttonsCell);
-            tbody.append(trow);
-        });
+        fillTable(tbody, clientsListObj)
 
         return tbody
     }
 
     function createContactItem(item) {
-        const {type, value} = item;
-        const contactItem = createHTMLElement({tag: 'div', classNameArr: ['contacts__item']});
+        const {type, value} = item,
+            contactItem = createHTMLElement({tag: 'div', classNameArr: ['contacts__item']});
 
-        let src = './css/icons/person.svg';
-        switch (type) {
-            case 'Телефон':
-                src = './css/icons/phone.svg';
-                break
-            case 'Email':
-                src = './css/icons/mail.svg';
-                break
-            case 'Facebook':
-                src = './css/icons/fb.svg';
-                break
-            case 'VK':
-                src = './css/icons/vk.svg';
-                break
-        }
+        let src = iconsPathObj[type] ? iconsPathObj[type] : iconsPathObj.others;
 
         const itemImg = createHTMLElement({
-            tag: 'img',
-            classNameArr: ['contacts__icon'],
-            attributesArr: [
-                {name: 'src', value: `${src}`},
-                {name: 'alt', value: `${type} ${value}`},
-                {name: 'tabindex', value: 0},
-            ]
-        });
-        const itemPopup = createHTMLElement({
-            tag: 'div',
-            text: `${type}: ${value}`,
-            classNameArr: ['tooltip']
-        })
+                tag: 'img',
+                classNameArr: ['contacts__icon'],
+                attributesArr: [
+                    {name: 'src', value: `${src}`},
+                    {name: 'alt', value: `${type} ${value}`},
+                    {name: 'tabindex', value: 0},
+                ]
+            }),
+            itemPopup = createHTMLElement({
+                tag: 'div',
+                text: `${type}: ${value}`,
+                classNameArr: ['tooltip']
+            });
 
-        contactItem.append(itemImg, itemPopup)
+        contactItem.append(itemImg, itemPopup);
 
         return contactItem
     }
@@ -293,24 +229,24 @@ import {contactsOptions, currentColumns} from "./data.js";
     function createAddContactGroup(currentInfo = {}) {
         let {currentType, currentValue} = currentInfo;
         const wrapper = createHTMLElement({
-            tag: 'div',
-            classNameArr: ['add-contact__wrapper']
-        });
-        const select = createHTMLElement({
-            tag: 'select',
-            classNameArr: ['add-contact__select']
-        });
-        const input = createHTMLElement({
-            tag: 'input',
-            classNameArr: ['add-contact__input']
-        });
-        const btnDeleteContact = createHTMLElement({
-            tag: 'button',
-            classNameArr: [
-                'btn',
-                'btn_delete-contact',
-            ]
-        });
+                tag: 'div',
+                classNameArr: ['add-contact__wrapper']
+            }),
+            select = createHTMLElement({
+                tag: 'select',
+                classNameArr: ['add-contact__select']
+            }),
+            input = createHTMLElement({
+                tag: 'input',
+                classNameArr: ['add-contact__input']
+            }),
+            btnDeleteContact = createHTMLElement({
+                tag: 'button',
+                classNameArr: [
+                    'btn',
+                    'btn_delete-contact',
+                ]
+            });
 
         contactsOptions.forEach(function (option) {
             const optionElement = createHTMLElement({
@@ -318,8 +254,8 @@ import {contactsOptions, currentColumns} from "./data.js";
                 text: option,
             });
             if (currentType === option) {
-                optionElement.setAttribute('selected');
-                input.setAttribute('value', currentValue);
+                optionElement.selected;
+                input.value = currentValue;
             }
             select.append(optionElement);
         })
@@ -331,17 +267,17 @@ import {contactsOptions, currentColumns} from "./data.js";
         return wrapper
     }
 
-    /** -=END=-  Создание вёрстки таблицы. **/
+    /* -=END=-  Создание вёрстки таблицы. */
 
     function createModalWindow() {
-        const modal = createHTMLElement({tag: 'div', classNameArr: ['modal']});
-        const modalWindow = createHTMLElement({tag: 'div', classNameArr: ['modal__window']});
-        const modalWrapper = createHTMLElement({tag: 'div', classNameArr: ['modal__wrapper']});
-        const closeBtn = createHTMLElement({
-            tag: 'button',
-            text: 'Закрыть',
-            classNameArr: ['btn', 'btn_close']
-        });
+        const modal = createHTMLElement({tag: 'div', classNameArr: ['modal']}),
+            modalWindow = createHTMLElement({tag: 'div', classNameArr: ['modal__window']}),
+            modalWrapper = createHTMLElement({tag: 'div', classNameArr: ['modal__wrapper']}),
+            closeBtn = createHTMLElement({
+                tag: 'button',
+                text: 'Закрыть',
+                classNameArr: ['btn', 'btn_close']
+            });
 
         closeBtn.addEventListener('click', () => {
             modal.classList.remove('active');
@@ -353,153 +289,236 @@ import {contactsOptions, currentColumns} from "./data.js";
         return modal
     }
 
-    function addFormDelete(clientId) {
+    function closeModal(element) {
+        element.closest('.modal').classList.remove('.active')
+    }
+
+    function fillTable(table, clientsListObj) {
+        clientsListObj.forEach(client => {
+            const trow = createHTMLElement({tag: 'tr'});
+
+            let {id, createdAt, updatedAt, name, surname, lastName, contacts} = client,
+                idCell = createHTMLElement({
+                    tag: 'td',
+                    text: id,
+                    attributesArr: [
+                        {scope: 'row'},
+                    ]
+                }),
+                nameCell = createHTMLElement({
+                    tag: 'td',
+                    text: `${surname} ${name} ${lastName}`,
+                }),
+                dateCreateCell = createHTMLElement({tag: 'td'}),
+                dateEditCell = createHTMLElement({tag: 'td'}),
+                contactsCell = createHTMLElement({tag: 'td'}),
+                buttonsCell = createHTMLElement({tag: 'td'}),
+                editBtn = createHTMLElement({
+                    tag: 'button',
+                    text: 'Изменить',
+                    classNameArr: [
+                        'btn',
+                        'btn_edit'
+                    ],
+                    attributesArr: [
+                        {
+                            name: 'type',
+                            value: 'button'
+                        },
+                    ]
+                }),
+                deleteBtn = createHTMLElement({
+                    tag: 'button',
+                    text: 'Удалить',
+                    classNameArr: [
+                        'btn',
+                        'btn_delete',
+                    ],
+                });
+
+            dateCreateCell.innerHTML = `${getDMYFromISODate(createdAt)}<span>${getHMFromISODate(createdAt)}</span>`;
+
+            updatedAt ?
+                dateEditCell.innerHTML = `${getDMYFromISODate(updatedAt)}<span>${getHMFromISODate(updatedAt)}</span>` : null;
+
+            contacts.forEach(contactItem => contactsCell.append(createContactItem(contactItem)))
+
+            editBtn.addEventListener('click', () => {
+                const modal = document.querySelector('.modal'),
+                    modalWrapper = modal.querySelector('.modal__wrapper');
+
+                modalWrapper.append(addFormEdit(client));
+                modal.classList.add('active')
+            })
+            deleteBtn.addEventListener('click', (e) => {
+                deleteContact(id, e.target.closest('tr'))
+            });
+
+            buttonsCell.append(editBtn, deleteBtn);
+            trow.append(idCell, nameCell, dateCreateCell, dateEditCell, contactsCell, buttonsCell);
+            table.append(trow);
+        });
+    }
+
+    function refillTable(clientsListObj) {
+        const tableBody = document.getElementById('tbody');
+
+        tableBody.innerHTML = '';
+        fillTable(tableBody, clientsListObj)
+    }
+
+    function addFormDelete(clientId, contactTableRow) {
         const form = createHTMLElement({
-            tag: 'form',
-            classNameArr: ['form_delete', 'form'],
-            attributesArr: [
-                {
-                    name: 'method',
-                    value: 'delete',
-                }
-            ]
-        });
-        const h2 = createHTMLElement({tag: 'h2'});
-        const p = createHTMLElement({
-            tag: 'p',
-            text: 'Вы действительно хотите удалить данного клиента?',
-        });
-        const exceptionWrapper = createHTMLElement({
-            tag: 'div',
-            classNameArr: ['exception-wrapper'],
-        });
-        const buttonDelete = createHTMLElement({
-            tag: 'button',
-            text: 'Удалить',
-            classNameArr: ['btn', 'btn_big', 'btn_violet'],
-            attributesArr: [
-                {
-                    name: 'type',
-                    value: 'submit',
-                }
-            ],
-        });
-        const buttonCancel = createHTMLElement({
-            tag: 'button',
-            text: 'Отмена',
-            classNameArr: ['btn', 'btn_underline'],
-        });
+                tag: 'form',
+                classNameArr: ['form_delete', 'form'],
+                attributesArr: [
+                    {
+                        name: 'method',
+                        value: 'delete',
+                    }
+                ]
+            }),
+            h2 = createHTMLElement({tag: 'h2'}),
+            p = createHTMLElement({
+                tag: 'p',
+                text: 'Вы действительно хотите удалить данного клиента?',
+            }),
+            exceptionWrapper = createHTMLElement({
+                tag: 'div',
+                classNameArr: ['exception-wrapper'],
+            }),
+            buttonDelete = createHTMLElement({
+                tag: 'button',
+                text: 'Удалить',
+                classNameArr: ['btn', 'btn_big', 'btn_violet'],
+                attributesArr: [
+                    {
+                        name: 'type',
+                        value: 'submit',
+                    }
+                ],
+            }),
+            buttonCancel = createHTMLElement({
+                tag: 'button',
+                text: 'Отмена',
+                classNameArr: ['btn', 'btn_underline'],
+            });
 
         form.addEventListener('submit', (e) => {
             e.preventDefault();
-            deleteData(clientId)
-                .then(() => alert('Успешно'))
-                .then(closeModal)
+            deleteData(clientId).then(() => alert('Успешно'))
+                .then(contactTableRow.remove)
+                .then(closeModal);
         });
-        buttonCancel.addEventListener('click', closeModal);
+        buttonCancel.addEventListener('click', () => closeModal(form));
 
         form.append(h2, p, exceptionWrapper, buttonDelete, buttonCancel);
 
         return form
     }
 
+    function deleteContact(id, contactTableRow) {
+        const modal = document.querySelector('.modal'),
+            modalWrapper = modal.querySelector('.modal__wrapper');
+
+        modalWrapper.append(addFormDelete(id, contactTableRow));
+        modal.classList.add('active');
+    }
+
     function addFormCreate() {
         const form = createHTMLElement({
-            tag: 'form',
-            classNameArr: ['form_create', 'form',],
-            attributesArr: [
-                {name: 'method', value: 'create'},
-            ],
-        });
-        const h2 = createHTMLElement({tag: 'h2', text: 'Новый клиент'});
-        const labelInputSurname = createHTMLElement({
-            tag: 'label',
-            text: 'Фамилия',
-            classNameArr: ['visually-hidden',],
-            attributesArr: [
-                {name: 'for', value: 'surname'},
-            ],
-        });
-        const inputSurname = createHTMLElement({
-            tag: 'input',
-            attributesArr: [
-                {name: 'type', value: 'text'},
-                {name: 'placeholder', value: 'Фамилия'},
-                {name: 'name', value: 'surname'},
-                {name: 'id', value: 'surname_input'},
-            ],
-        });
-        const labelInputName = createHTMLElement({
-            tag: 'label',
-            text: 'Имя',
-            classNameArr: ['visually-hidden',],
-            attributesArr: [
-                {name: 'for', value: 'name'},
-            ],
-        });
-        const inputName = createHTMLElement({
-            tag: 'input',
-            attributesArr: [
-                {name: 'type', value: 'text'},
-                {name: 'placeholder', value: 'Имя'},
-                {name: 'name', value: 'name'},
-                {name: 'id', value: 'name_input'},
-            ],
-        });
-        const labelInputSecondName = createHTMLElement({
-            tag: 'label',
-            text: 'Отчество',
-            classNameArr: ['visually-hidden',],
-            attributesArr: [
-                {name: 'for', value: 'last-name'},
-            ],
-        });
-        const inputSecondName = createHTMLElement({
-            tag: 'input',
-            attributesArr: [
-                {name: 'type', value: 'text'},
-                {name: 'placeholder', value: 'Отчество'},
-                {name: 'name', value: 'last-name'},
-                {name: 'id', value: 'last-name_input'},
-            ],
-        });
-        const addContactFieldset = createHTMLElement({
-            tag: 'fieldset',
-            classNameArr: ['fieldset_add-contact']
-        })
-        const btnAddContact = createHTMLElement({
-            tag: 'button',
-            text: 'Добавить контакт',
-            classNameArr: ['btn', 'btn_add-contact'],
-        });
-        const btnSave = createHTMLElement({
-            tag: 'button',
-            text: 'Сохранить',
-            classNameArr: ['btn', 'btn_big', 'btn_violet'],
-            attributesArr: [
-                {
-                    name: 'type',
-                    value: 'submit',
-                }
-            ],
-        });
-        const btnCancel = createHTMLElement({
-            tag: 'button',
-            text: 'Отмена',
-            classNameArr: ['btn', 'btn_underline'],
-        });
-        const exceptionWrapper = createHTMLElement({
-            tag: 'div',
-            classNameArr: ['exception-wrapper'],
-        });
+                tag: 'form',
+                classNameArr: ['form_create', 'form',],
+                attributesArr: [
+                    {name: 'method', value: 'create'},
+                ],
+            }),
+            h2 = createHTMLElement({tag: 'h2', text: 'Новый клиент'}),
+            labelInputSurname = createHTMLElement({
+                tag: 'label',
+                text: 'Фамилия',
+                classNameArr: ['visually-hidden',],
+                attributesArr: [
+                    {name: 'for', value: 'surname'},
+                ],
+            }),
+            inputSurname = createHTMLElement({
+                tag: 'input',
+                attributesArr: [
+                    {name: 'type', value: 'text'},
+                    {name: 'placeholder', value: 'Фамилия'},
+                    {name: 'name', value: 'surname'},
+                    {name: 'id', value: 'surname_input'},
+                ],
+            }),
+            labelInputName = createHTMLElement({
+                tag: 'label',
+                text: 'Имя',
+                classNameArr: ['visually-hidden',],
+                attributesArr: [
+                    {name: 'for', value: 'name'},
+                ],
+            }),
+            inputName = createHTMLElement({
+                tag: 'input',
+                attributesArr: [
+                    {name: 'type', value: 'text'},
+                    {name: 'placeholder', value: 'Имя'},
+                    {name: 'name', value: 'name'},
+                    {name: 'id', value: 'name_input'},
+                ],
+            }),
+            labelInputSecondName = createHTMLElement({
+                tag: 'label',
+                text: 'Отчество',
+                classNameArr: ['visually-hidden',],
+                attributesArr: [
+                    {name: 'for', value: 'last-name'},
+                ],
+            }),
+            inputSecondName = createHTMLElement({
+                tag: 'input',
+                attributesArr: [
+                    {name: 'type', value: 'text'},
+                    {name: 'placeholder', value: 'Отчество'},
+                    {name: 'name', value: 'last-name'},
+                    {name: 'id', value: 'last-name_input'},
+                ],
+            }),
+            addContactFieldset = createHTMLElement({
+                tag: 'fieldset',
+                classNameArr: ['fieldset_add-contact']
+            }),
+            btnAddContact = createHTMLElement({
+                tag: 'button',
+                text: 'Добавить контакт',
+                classNameArr: ['btn', 'btn_add-contact'],
+            }),
+            btnSave = createHTMLElement({
+                tag: 'button',
+                text: 'Сохранить',
+                classNameArr: ['btn', 'btn_big', 'btn_violet'],
+                attributesArr: [
+                    {
+                        name: 'type',
+                        value: 'submit',
+                    }
+                ],
+            }),
+            btnCancel = createHTMLElement({
+                tag: 'button',
+                text: 'Отмена',
+                classNameArr: ['btn', 'btn_underline'],
+            }),
+            exceptionWrapper = createHTMLElement({
+                tag: 'div',
+                classNameArr: ['exception-wrapper'],
+            });
 
-        btnAddContact.addEventListener('click', () => {
-            addContactFieldset.append(createAddContactGroup())
-        });
+        btnAddContact.addEventListener('click', () => addContactFieldset.append(createAddContactGroup()));
         form.addEventListener('submit', (e) => {
             e.preventDefault();
-            saveFormCreate(form)
-                .then(closeModal);
+            saveFormCreate(form).then(() => closeModal(form));
         });
 
         addContactFieldset.append(btnAddContact);
@@ -519,12 +538,18 @@ import {contactsOptions, currentColumns} from "./data.js";
 
     }
 
+    function filterClientsById() {
+        dataStorage.sort(function (a, b) {
+            return a.id - b.id
+        })
+    }
+
     async function saveFormCreate(form) {
-        const inputName = document.getElementById('name_input');
-        const inputSurname = document.getElementById('surname_input');
-        const inputLastName = document.getElementById('last-name_input');
-        let contacts = form.querySelectorAll('.add-contact__wrapper');
-        let newClient = {name: '', surname: '',};
+        const inputName = document.getElementById('name_input'),
+            inputSurname = document.getElementById('surname_input'),
+            inputLastName = document.getElementById('last-name_input');
+        let contacts = form.querySelectorAll('.add-contact__wrapper'),
+            newClient = {name: '', surname: '',};
 
         newClient.name = inputName.value.toString();
         newClient.surname = inputSurname.value.toString();
@@ -533,8 +558,8 @@ import {contactsOptions, currentColumns} from "./data.js";
         if (contacts.length > 0) {
             newClient.contacts = [];
             contacts.forEach(function (contact) {
-                const select = contact.querySelector('select');
-                const input = contact.querySelector('input');
+                const select = contact.querySelector('select'),
+                    input = contact.querySelector('input');
 
                 if (input.value) {
                     newClient.contacts.push({
@@ -548,9 +573,16 @@ import {contactsOptions, currentColumns} from "./data.js";
         changeData({
             method: 'post',
             clientObject: newClient,
-        })
-            .then(r => console.log(r))
+        }).then(r => console.log(r))
             .then(() => alert('Успешно'));
+    }
+
+    async function hotSearch(request) {
+        getData({searchRequest: request})
+            .then(r => {
+                dataStorage = r;
+                refillTable(r)
+            })
     }
 
     app.append(createHeader());

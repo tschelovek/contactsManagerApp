@@ -3,12 +3,12 @@ export const API_PATH = '/api/clients';
 
 /* Массив с полями для шапки таблицы */
 export const currentColumns = [
-    'ID',
-    'Фамилия Имя Отчество',
-    'Дата и время создания',
-    'Последние изменения',
-    'Контакты',
-    'Действия'
+    {name: 'ID', filtered: true, filterId: ''},
+    {name: 'Фамилия Имя Отчество', filtered: true},
+    {name: 'Дата и время создания', filtered: true},
+    {name: 'Последние изменения', filtered: true},
+    {name: 'Контакты', filtered: false},
+    {name: 'Действия', filtered: false},
 ];
 /* Массив с типами контактных данных */
 export const contactsOptions = [
@@ -18,6 +18,14 @@ export const contactsOptions = [
     'Facebook',
     'Другое'
 ];
+/* Объект с путями к иконкам */
+export const iconsPathObj = {
+    others: './css/icons/person.svg',
+    'Email': './css/icons/mail.svg',
+    'Facebook': './css/icons/fb.svg',
+    'VK': './css/icons/vk.svg',
+    'Телефон': './css/icons/phone.svg',
+}
 
 export const testUsers = [
     {
@@ -86,4 +94,3 @@ export const testUsers = [
         ]
     },
 ]
-

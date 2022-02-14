@@ -19,6 +19,10 @@ body {
     background-color: var(--light-gray);
 }
 
+.svg__container {
+    display: none;
+}
+
 .container {
     margin: 0 auto;
     padding: 0 20px;
@@ -72,6 +76,10 @@ th.filtered {
     color: var(--violet);
 }
 
+.th__container {
+    display: flex;
+}
+
 td {
     padding: 20px;
 }
@@ -93,6 +101,25 @@ tbody tr td[scope] {
 
 tbody tr td:nth-child(3) span, tbody tr td:nth-child(4) span {
     margin-left: 8px;
+    color: var(--text-gray);
+}
+
+.form-search_header {
+    margin-left: 52px;
+    display: flex;
+    align-items: center;
+    max-width: 580px;
+    width: 100%;
+}
+
+.form-search_header input {
+    padding: 0 16px;
+    height: 44px;
+    width: 100%;
+    border: 1px solid var(--gray);
+}
+
+.form-search_header input::placeholder {
     color: var(--text-gray);
 }
 
@@ -265,11 +292,11 @@ tbody tr td:nth-child(3) span, tbody tr td:nth-child(4) span {
     width: 20px;
     height: 2px;
     background-color: var(--text-gray);
-    -webkit-transform: rotateZ(45deg);
-    -moz-transform: rotateZ(45deg);
-    -ms-transform: rotateZ(45deg);
-    -o-transform: rotateZ(45deg);
-    transform: rotateZ(45deg);
+    -webkit-transform: rotate(45deg);
+    -moz-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    -o-transform: rotate(45deg);
+    transform: rotate(45deg);
     -webkit-transition: background-color 0.2s;
     -moz-transition: background-color 0.2s;
     -ms-transition: background-color 0.2s;
@@ -278,11 +305,11 @@ tbody tr td:nth-child(3) span, tbody tr td:nth-child(4) span {
 }
 
 .btn_close::after {
-    -webkit-transform: rotateZ(-45deg);
-    -moz-transform: rotateZ(-45deg);
-    -ms-transform: rotateZ(-45deg);
-    -o-transform: rotateZ(-45deg);
-    transform: rotateZ(-45deg);
+    -webkit-transform: rotate(-45deg);
+    -moz-transform: rotate(-45deg);
+    -ms-transform: rotate(-45deg);
+    -o-transform: rotate(-45deg);
+    transform: rotate(-45deg);
 }
 
 .btn_close:hover::before, .btn_close:hover::after {
@@ -307,4 +334,19 @@ tbody tr td:nth-child(3) span, tbody tr td:nth-child(4) span {
     content: url('./icons/add_contact.svg');
 }
 
+.btn_filter {
+    position: relative;
+    border: none;
+}
+
+.btn_filter#filter2::after {
+    /*position: absolute;*/
+    content: 'A-Z';
+    color: var(--violet);
+    /*background: url('./icons/arrow.svg') no-repeat;*/
+    /*width: 12px;*/
+    /*height: 12px;*/
+    /*top: 0;*/
+    /*left: 0;*/
+}
 
