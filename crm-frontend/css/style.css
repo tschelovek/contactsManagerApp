@@ -2,6 +2,7 @@
     --gray: #E3E2E8;
     --light-gray: #F5F5F5;
     --text-gray: #B0B0B0;
+    --dark-gray: #C8C5D1;
     --violet: #9873FF;
     --red: #F06A4D;
 }
@@ -9,6 +10,10 @@
 *, *::before, *::after {
     margin: 0;
     box-sizing: border-box;
+}
+
+select:focus {
+    outline: none;
 }
 
 body {
@@ -80,6 +85,10 @@ th.filtered {
     display: flex;
 }
 
+.th__container button[data-sort] {
+    color: var(--violet);
+}
+
 td {
     padding: 20px;
 }
@@ -124,16 +133,51 @@ tbody tr td:nth-child(3) span, tbody tr td:nth-child(4) span {
 }
 
 .form input {
-    height: 40px;
     border: none;
 }
 
+input.form__input_name {
+    height: 40px;
+    border-bottom: 1px solid var(--light-gray);
+}
+
 .fieldset_add-contact {
+    margin: 24px -30px 0;
+    padding: 8px 30px;
     display: flex;
-    flex-flow: column;
+    flex-flow: column-reverse;
     justify-content: center;
-    background-color: var(--gray);
+    background-color: var(--light-gray);
     border: none;
+}
+
+.add-contact__wrapper {
+    margin-top: 16px;
+    display: flex;
+    background-color: var(--gray);
+    border: 1px solid var(--dark-gray);
+}
+
+.add-contact__select {
+    padding: 0 8px;
+    border: none;
+    background-color: transparent;
+}
+
+.add-contact__select option {
+    background-color: var(--gray);
+}
+
+.add-contact__input {
+    padding: 0 12px;
+    height: 36px;
+    background-color: var(--light-gray);
+    font-weight: 600;
+    width: -webkit-fill-available;
+}
+
+.add-contact__input:focus {
+    outline: none
 }
 
 .modal {
@@ -217,8 +261,15 @@ tbody tr td:nth-child(3) span, tbody tr td:nth-child(4) span {
 }
 
 .form h2 {
-    font-size: 18px;
+    margin-right: 0.5rem;
+    display: inline;
+    font-size: 1.5rem;
     font-weight: 700;
+}
+
+.form__header__info {
+    font-size: 0.75rem;
+    color: var(--text-gray);
 }
 
 .form_delete {
@@ -325,8 +376,16 @@ tbody tr td:nth-child(3) span, tbody tr td:nth-child(4) span {
 }
 
 .btn_add-contact {
+    margin: 16px 0 8px;
     font-size: 14px;
     font-weight: 600;
+}
+
+.btn_delete-contact {
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    border-left: 1px solid var(--dark-gray);
 }
 
 .btn_add-contact::before {
@@ -337,6 +396,7 @@ tbody tr td:nth-child(3) span, tbody tr td:nth-child(4) span {
 .btn_filter {
     position: relative;
     border: none;
+    background-color: unset;
 }
 
 .btn_filter#filter2::after {
@@ -348,5 +408,9 @@ tbody tr td:nth-child(3) span, tbody tr td:nth-child(4) span {
     /*height: 12px;*/
     /*top: 0;*/
     /*left: 0;*/
+}
+
+.btn_filter#filter2[data-sort="straight"]::after {
+    content: 'Z-A';
 }
 

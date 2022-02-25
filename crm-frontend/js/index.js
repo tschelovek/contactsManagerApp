@@ -5,11 +5,28 @@ import {contactsOptions, currentColumns, iconsPathObj} from "./data.js";
 
 (function () {
     const app = document.querySelector('#app');
-    // Object.prototype.sortByLetter = function () {
-    //     this.sort(function (a, b) {
-    //         return a - b
-    //     })
-    // }
+    Object.prototype.sort123 = function (param) {
+        this.sort(function (a, b) {
+            if (param === 'createdAt' || param === 'updatedAt') {
+                let dateA = new Date(a[param]).getTime(),
+                    dateB = new Date(b[param]).getTime();
+                return dateA - dateB
+            } else {
+                return a[param] - b[param]
+            }
+        })
+    }
+    Object.prototype.sort321 = function (param) {
+        this.sort(function (a, b) {
+            if (param === 'createdAt' || param === 'updatedAt') {
+                let dateA = new Date(a[param]).getTime(),
+                    dateB = new Date(b[param]).getTime();
+                return dateB - dateA
+            } else {
+                return b[param] - a[param]
+            }
+        })
+    }
 
     let getDMYFromISODate = dateString => new Date(dateString).toLocaleDateString(),
         getHMFromISODate = dateString => new Date(dateString).toLocaleTimeString().slice(0, -3),
@@ -24,8 +41,9 @@ import {contactsOptions, currentColumns, iconsPathObj} from "./data.js";
         element.textContent = text ? text : '';
 
         classNameArr.forEach(styleClass => isString(styleClass) ? element.classList.add(styleClass) : null)
-        attributesArr.forEach(attribute => isString(attribute.name) ?
-            element.setAttribute(attribute.name, attribute.value) : null);
+        attributesArr.forEach(attribute => isString(attribute.name)
+            ? element.setAttribute(attribute.name, attribute.value)
+            : null);
 
         if (tag === 'button') {
             let attributesArrFilteredByType = attributesArr.filter(attribute => attribute.name === 'type').reverse();
@@ -38,7 +56,6 @@ import {contactsOptions, currentColumns, iconsPathObj} from "./data.js";
 
         return element
     }
-
 
     /* Создание вёрстки таблицы. -=START=- */
     function createHeader() {
@@ -154,7 +171,8 @@ import {contactsOptions, currentColumns, iconsPathObj} from "./data.js";
     function createTableHeadRow(currentColumnsArr) {
         const thead = createHTMLElement({tag: 'thead'}),
             trow = createHTMLElement({tag: 'tr'});
-        let filterCounter = 1;
+        let filterCounter = 1,
+            filterButtonsArray = [];
 
         currentColumnsArr.forEach(column => {
             const tcell = createHTMLElement({
@@ -172,6 +190,7 @@ import {contactsOptions, currentColumns, iconsPathObj} from "./data.js";
             if (column.filtered) {
                 const btn = createHTMLElement({
                         tag: 'button',
+                        text: column.name,
                         classNameArr: ['btn_filter'],
                         attributesArr: [
                             {name: 'id', value: `filter${filterCounter++}`}
@@ -179,15 +198,21 @@ import {contactsOptions, currentColumns, iconsPathObj} from "./data.js";
                     }),
                     svgArrow = document.querySelector('#svg_arrow').cloneNode(true);
 
+                tcellContainer.textContent = ''
                 svgArrow.removeAttribute('id');
+
                 btn.appendChild(svgArrow);
+                filterButtonsArray.push(btn);
                 tcellContainer.append(btn);
             }
 
             tcell.append(tcellContainer)
             trow.append(tcell)
         });
+
         thead.append(trow);
+
+        addTableFiltersHandler(filterButtonsArray)
 
         return thead
     }
@@ -227,7 +252,7 @@ import {contactsOptions, currentColumns, iconsPathObj} from "./data.js";
     }
 
     function createAddContactGroup(currentInfo = {}) {
-        let {currentType, currentValue} = currentInfo;
+        let {type, value} = currentInfo;
         const wrapper = createHTMLElement({
                 tag: 'div',
                 classNameArr: ['add-contact__wrapper']
@@ -246,20 +271,24 @@ import {contactsOptions, currentColumns, iconsPathObj} from "./data.js";
                     'btn',
                     'btn_delete-contact',
                 ]
-            });
+            }),
+            svgDelete = document.querySelector('#svg_delete').cloneNode(true);
 
         contactsOptions.forEach(function (option) {
             const optionElement = createHTMLElement({
                 tag: 'option',
                 text: option,
             });
-            if (currentType === option) {
-                optionElement.selected;
-                input.value = currentValue;
+            if (type === option) {
+                console.log(option, type)
+                optionElement.selected = 'true';
+                input.value = value;
             }
             select.append(optionElement);
         })
 
+        svgDelete.removeAttribute('id');
+        btnDeleteContact.append(svgDelete)
         btnDeleteContact.addEventListener('click', () => wrapper.remove());
 
         wrapper.append(select, input, btnDeleteContact);
@@ -270,7 +299,13 @@ import {contactsOptions, currentColumns, iconsPathObj} from "./data.js";
     /* -=END=-  Создание вёрстки таблицы. */
 
     function createModalWindow() {
-        const modal = createHTMLElement({tag: 'div', classNameArr: ['modal']}),
+        const modal = createHTMLElement({
+                tag: 'div',
+                classNameArr: ['modal'],
+                attributesArr: [
+                    {id: 'modal'}
+                ],
+            }),
             modalWindow = createHTMLElement({tag: 'div', classNameArr: ['modal__window']}),
             modalWrapper = createHTMLElement({tag: 'div', classNameArr: ['modal__wrapper']}),
             closeBtn = createHTMLElement({
@@ -290,7 +325,64 @@ import {contactsOptions, currentColumns, iconsPathObj} from "./data.js";
     }
 
     function closeModal(element) {
+        console.log(element)
         element.closest('.modal').classList.remove('.active')
+    }
+
+    function addTableFiltersHandler(filterButtonsArr) {
+        const filterByIDButton = filterButtonsArr[0],
+            filterByNameButton = filterButtonsArr[1],
+            filterByCreateDateButton = filterButtonsArr[2],
+            filterByEditDateButton = filterButtonsArr[3];
+
+        filterByIDButton.addEventListener('click', () => {
+
+            filterButtonsArr.forEach(button => {
+                if (button !== filterByIDButton) button.removeAttribute('data-sort')
+            })
+
+            toggleDataSortAttribute(filterByIDButton);
+            filterById(filterByIDButton.getAttribute('data-sort'))
+        });
+        filterByNameButton.addEventListener('click', () => {
+
+            filterButtonsArr.forEach(button => {
+                if (button !== filterByNameButton) button.removeAttribute('data-sort')
+            })
+
+            toggleDataSortAttribute(filterByNameButton);
+            filterByName(filterByNameButton.getAttribute('data-sort'))
+        });
+        filterByCreateDateButton.addEventListener('click', () => {
+
+            filterButtonsArr.forEach(button => {
+                if (button !== filterByCreateDateButton) button.removeAttribute('data-sort')
+            })
+
+            toggleDataSortAttribute(filterByCreateDateButton);
+            filterByCreateDate(filterByCreateDateButton.getAttribute('data-sort'))
+        });
+        filterByEditDateButton.addEventListener('click', () => {
+
+            filterButtonsArr.forEach(button => {
+                if (button !== filterByEditDateButton) button.removeAttribute('data-sort')
+            })
+
+            toggleDataSortAttribute(filterByEditDateButton);
+
+            filterByEditDate(filterByEditDateButton.getAttribute('data-sort'))
+        });
+
+    }
+
+    function toggleDataSortAttribute(button) {
+        if (!button.hasAttribute('data-sort')) {
+            button.setAttribute('data-sort', 'straight')
+        } else {
+            button.getAttribute('data-sort') === 'straight'
+                ? button.setAttribute('data-sort', 'revers')
+                : button.setAttribute('data-sort', 'straight')
+        }
     }
 
     function fillTable(table, clientsListObj) {
@@ -426,6 +518,45 @@ import {contactsOptions, currentColumns, iconsPathObj} from "./data.js";
     }
 
     function addFormCreate() {
+        let {form, h2} = makePostClientForm();
+
+        h2.innerText = 'Новый клиент';
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            saveFormCreate(form).then(() => closeModal(form));
+        });
+
+        return form
+    }
+
+    function addFormEdit(clientObj) {
+        let {
+                form,
+                h2,
+                formHeaderInfo,
+                inputSurname,
+                inputName,
+                inputSecondName,
+                addContactFieldset
+            } = makePostClientForm(),
+            {id, name, surname, lastName, contacts} = clientObj;
+
+        h2.innerText = 'Изменить данные';
+        formHeaderInfo.innerText = `ID:${id}`;
+
+        contacts.forEach(contact => {
+            addContactFieldset.append(createAddContactGroup(contact))
+        })
+
+        inputSurname.value = surname;
+        inputName.value = name;
+        inputSecondName.value = lastName;
+
+        return form
+    }
+
+    function makePostClientForm() {
         const form = createHTMLElement({
                 tag: 'form',
                 classNameArr: ['form_create', 'form',],
@@ -433,7 +564,15 @@ import {contactsOptions, currentColumns, iconsPathObj} from "./data.js";
                     {name: 'method', value: 'create'},
                 ],
             }),
-            h2 = createHTMLElement({tag: 'h2', text: 'Новый клиент'}),
+            formHeader = createHTMLElement({
+                tag: 'div',
+                classNameArr: ['form__header',],
+            }),
+            h2 = createHTMLElement({tag: 'h2'}),
+            formHeaderInfo = createHTMLElement({
+                tag: 'span',
+                classNameArr: ['form__header__info',],
+            }),
             labelInputSurname = createHTMLElement({
                 tag: 'label',
                 text: 'Фамилия',
@@ -450,6 +589,7 @@ import {contactsOptions, currentColumns, iconsPathObj} from "./data.js";
                     {name: 'name', value: 'surname'},
                     {name: 'id', value: 'surname_input'},
                 ],
+                classNameArr: ['form__input_name',],
             }),
             labelInputName = createHTMLElement({
                 tag: 'label',
@@ -467,6 +607,7 @@ import {contactsOptions, currentColumns, iconsPathObj} from "./data.js";
                     {name: 'name', value: 'name'},
                     {name: 'id', value: 'name_input'},
                 ],
+                classNameArr: ['form__input_name',],
             }),
             labelInputSecondName = createHTMLElement({
                 tag: 'label',
@@ -484,6 +625,7 @@ import {contactsOptions, currentColumns, iconsPathObj} from "./data.js";
                     {name: 'name', value: 'last-name'},
                     {name: 'id', value: 'last-name_input'},
                 ],
+                classNameArr: ['form__input_name',],
             }),
             addContactFieldset = createHTMLElement({
                 tag: 'fieldset',
@@ -516,14 +658,14 @@ import {contactsOptions, currentColumns, iconsPathObj} from "./data.js";
             });
 
         btnAddContact.addEventListener('click', () => addContactFieldset.append(createAddContactGroup()));
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            saveFormCreate(form).then(() => closeModal(form));
-        });
+        btnCancel.addEventListener('click', () => {
+            closeModal(form)
+        })
 
+        formHeader.append(h2, formHeaderInfo)
         addContactFieldset.append(btnAddContact);
         form.append(
-            h2,
+            formHeader,
             labelInputSurname, inputSurname,
             labelInputName, inputName,
             labelInputSecondName, inputSecondName,
@@ -531,17 +673,57 @@ import {contactsOptions, currentColumns, iconsPathObj} from "./data.js";
             btnSave, btnCancel
         );
 
-        return form
+        return {form, h2, formHeaderInfo, inputSurname, inputName, inputSecondName, addContactFieldset}
     }
 
-    function addFormEdit(clientObj = {}) {
+    function filterById(order) {
+        if (order === 'straight') dataStorage.sort123('id');
+        if (order === 'revers') dataStorage.sort321('id');
 
+        refillTable(dataStorage)
     }
 
-    function filterClientsById() {
-        dataStorage.sort(function (a, b) {
-            return a.id - b.id
-        })
+    function filterByName(order) {
+        if (order === 'straight') {
+            dataStorage.sort((function (a, b) {
+                let surnameA = a.surname.toLowerCase(),
+                    surnameB = b.surname.toLowerCase();
+
+                if (surnameA < surnameB)
+                    return -1
+                if (surnameA > surnameB)
+                    return 1
+                return 0
+            }))
+        }
+        if (order === 'revers') {
+            dataStorage.sort((function (a, b) {
+                let surnameA = a.surname.toLowerCase(),
+                    surnameB = b.surname.toLowerCase();
+
+                if (surnameA > surnameB)
+                    return -1
+                if (surnameA < surnameB)
+                    return 1
+                return 0
+            }))
+        }
+
+        refillTable(dataStorage)
+    }
+
+    function filterByCreateDate(order) {
+        if (order === 'straight') dataStorage.sort123('createdAt');
+        if (order === 'revers') dataStorage.sort321('createdAt');
+
+        refillTable(dataStorage)
+    }
+
+    function filterByEditDate(order) {
+        if (order === 'straight') dataStorage.sort123('updatedAt');
+        if (order === 'revers') dataStorage.sort321('updatedAt');
+
+        refillTable(dataStorage)
     }
 
     async function saveFormCreate(form) {
