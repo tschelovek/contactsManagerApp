@@ -89,6 +89,10 @@ th.filtered {
     color: var(--violet);
 }
 
+.th__container button[data-sort='revers'] svg{
+    transform: rotate(180deg);
+}
+
 td {
     padding: 20px;
 }
@@ -185,15 +189,20 @@ input.form__input_name {
     position: fixed;
     top: 0;
     width: 100vw;
-    height: 100vh;
+    height: 100%;
     z-index: 20;
-    background-color: rgba(0, 0, 0, 0.5);
+    transition: background-color 0.3s;
 }
 
 .modal.active {
     display: flex;
     justify-content: center;
     align-items: center;
+    overflow: scroll;
+}
+
+.modal.active.shadowed {
+    background-color: rgba(0, 0, 0, 0.5);
 }
 
 .modal__window {
@@ -202,6 +211,14 @@ input.form__input_name {
     width: 450px;
     opacity: 1;
     background-color: #ffffff;
+    max-height: calc(100vh - 10px);
+    overflow-y: auto;
+    transform: translateY(-110vh);
+    transition: transform 0.3s;
+}
+
+.modal__window.active {
+    transform: translateY(0);
 }
 
 .contacts__item {
@@ -281,6 +298,9 @@ input.form__input_name {
     background-color: inherit;
     cursor: pointer;
     font-family: Open Sans, sans-serif;
+}
+.btn_underline {
+    text-decoration: underline;
 }
 
 .btn_create {
@@ -397,20 +417,51 @@ input.form__input_name {
     position: relative;
     border: none;
     background-color: unset;
+    cursor: pointer;
 }
 
 .btn_filter#filter2::after {
-    /*position: absolute;*/
     content: 'A-Z';
     color: var(--violet);
-    /*background: url('./icons/arrow.svg') no-repeat;*/
-    /*width: 12px;*/
-    /*height: 12px;*/
-    /*top: 0;*/
-    /*left: 0;*/
 }
 
 .btn_filter#filter2[data-sort="straight"]::after {
+    content: 'A-Z';
+}
+
+.btn_filter#filter2[data-sort="revers"]::after {
     content: 'Z-A';
+}
+
+.popup {
+    position: fixed;
+    /*width: 100%;*/
+    /*height: 100%;*/
+    z-index: 10;
+}
+.popup__body {
+    display: flex;
+    min-height: 100%;
+    align-items: center;
+    justify-content: center;
+}
+.popup__content {
+    padding: 2.5rem;
+    /*position: relative;*/
+    background-color: white;
+    max-width: 600px;
+    font-size: 1rem;
+
+     max-height: calc(100vh - 100px);
+    overflow-y: auto;
+}
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    pointer-events: none;
 }
 

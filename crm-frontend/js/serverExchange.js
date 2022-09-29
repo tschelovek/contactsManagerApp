@@ -18,6 +18,8 @@ export const deleteData = async (clientId) => {
 export const getData = async ({
                                   id = '',
                                   searchRequest = '',
+                                  onErrorFunc = () => {},
+                                  onLoadFunc = () => {},
                               } = {}) => {
     let url = (id) ? `${API_HOST}${API_PATH}/${id}` : `${API_HOST}${API_PATH}`;
     searchRequest ? url += `/?search=${searchRequest}` : null;
@@ -27,7 +29,16 @@ export const getData = async ({
         headers: {
             'Content-Type': 'application/json;charset=utf-8'
         },
-    }).then(response => response.json()).catch(err => console.error(err));
+    })
+      .then(onLoadFunc())
+      .then(response =>
+        // console.log(response.status)
+        response.json()
+      )
+      .catch(err => {
+        onErrorFunc();
+        console.error(err)
+      });
 }
 
 export const changeData = async ({

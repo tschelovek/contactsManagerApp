@@ -1,7 +1,8 @@
 export const API_HOST = 'http://localhost:3000';
 export const API_PATH = '/api/clients';
+export const CONTACTS_MAX = 10;
 
-/* Массив с полями для шапки таблицы */
+  /* Массив с полями для шапки таблицы */
 export const currentColumns = [
     {name: 'ID', filtered: true, filterId: ''},
     {name: 'Фамилия Имя Отчество', filtered: true},
@@ -94,3 +95,4 @@ export const testUsers = [
         ]
     },
 ]
+
